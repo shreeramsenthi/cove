@@ -7,7 +7,7 @@ Some key ideas:
   - duplicate records will be rejected using doi for identification -- Done!
   - keys will be managed using bibtool and will default to singleauthoryear -- Done!
     - keys will be disambiguated by letter suffixes *in the order they are added* so as to maintain stability as records are added
-  - fzf will be used to search records and insert bibtex keys
+  - fzf will be used to search records and insert bibtex keys -- Done!
   - eventually I would like pdf's to be searched and opened using fzf as well
 
 # Why cove?

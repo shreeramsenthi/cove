@@ -4,11 +4,20 @@
 set repo_dir ~/Documents/bib
 
 # Variables that are expected to stay constant across installations
-set bibtool_resources ~/.config/cove/bibtoolrc # where to store resource file for bibtool key formatting
+set key_format ~/.config/cove/key_format.rsc # where to store resource file for bibtool key formatting
+set fzf_format ~/.config/cove/fzf_format.rsc
 set repo $repo_dir/repo.bib
-set doi_list $repo_dir/doi_list
+set doi_list $repo_dir/doi
+set fzf_list $repo_dir/.fzf
 set new_bibs /tmp/cove_new.bib
 set temp_repo /tmp/cove_temp.bib
+
+# if first arg is cite, switch to citation mode
+switch $argv[1]
+  case cite
+    echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }'
+    exit
+  end
 
 # check for doi's already in repo
 for doi in $argv
@@ -36,5 +45,8 @@ echo $argv | sed 's/ /\n/g' >> $doi_list
 
 # manage key with bibtool
 rm -f $temp_repo
-bibtool -r $bibtool_resources $repo $new_bibs | cat > $temp_repo
+bibtool -r $key_format $repo $new_bibs | cat > $temp_repo
 mv $temp_repo $repo
+
+# generate file for fzf searching
+bibtool -r $fzf_format $repo | grep '^@' | sed 's/.*{\s*/\\\\n/' | sed 's/[-,]/ /g' | sed 's/+/,/g' | sed 's/e\[/\\\\e[/g' > $fzf_list

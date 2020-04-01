@@ -1,0 +1,40 @@
+#! /usr/bin/fish
+
+# Variables that'll depend on installation
+set repo_dir ~/Documents/bib
+
+# Variables that are expected to stay constant across installations
+set bibtool_resources ~/.config/cove/bibtoolrc # where to store resource file for bibtool key formatting
+set repo $repo_dir/repo.bib
+set doi_list $repo_dir/doi_list
+set new_bibs /tmp/cove_new.bib
+set temp_repo /tmp/cove_temp.bib
+
+# check for doi's already in repo
+for doi in $argv
+  if grep -xq $doi $doi_list
+    echo One or more entries already in repo!
+    exit
+  end
+end
+
+# Download bibtex records
+# -s = silent; -L = redirect location; -H = add custom header to request
+rm -f $new_bibs
+for doi in $argv
+  curl -sLH 'Accept: application/x-bibtex' http://dx.doi.org/$doi >> $new_bibs
+end
+
+# Check for broken doi links
+if grep 'DOI Not Found' $new_bibs
+  echo One or more invalid DOIs found!
+  exit
+end
+
+# Update doi list
+echo $argv | sed 's/ /\n/g' >> $doi_list
+
+# manage key with bibtool
+rm -f $temp_repo
+bibtool -r $bibtool_resources $repo $new_bibs | cat > $temp_repo
+mv $temp_repo $repo

@@ -13,3 +13,8 @@ Some key ideas:
 # Why cove?
 
 As part of my selfishness, I will be writing this utility in fish shell script, as that is my default shell. In keeping with the aquatic theme, I like the idea of hoarding all my papers in a cove. Think little mermaid.
+
+# Known issues
+
+- `cove cite` currently does not disambiguate keys
+  - modify the key code to copy from the bib file, rather than regenerating

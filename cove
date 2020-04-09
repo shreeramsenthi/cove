@@ -17,6 +17,9 @@ switch $argv[1]
   case cite
     echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }'
     exit
+  case title
+    echo -e (cat $fzf_list) | fzf --ansi | sed 's/.*[0-9]\.//' | sed 's/\. \[.*//'
+    exit
   end
 
 # check for doi's already in repo

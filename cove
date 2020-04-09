@@ -12,15 +12,45 @@ set fzf_list $repo_dir/.fzf
 set new_bibs /tmp/cove_new.bib
 set temp_repo /tmp/cove_temp.bib
 
-# if first arg is cite, switch to citation mode
+# set default behaviour for no argument
+if ! count $argv > /dev/null
+  set argv open
+end
+
+# set behaviour for core commands
 switch $argv[1]
+  case ""
+    echo here!
+  exit
   case cite
     echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }'
     exit
   case title
     echo -e (cat $fzf_list) | fzf --ansi | sed 's/.*[0-9]\.//' | sed 's/\. \[.*//'
     exit
+  case link
+    if ! echo $argv[2] | grep -q '\.pdf$'
+      echo 'Please supply a valid pdf!'
+      exit
+    end
+    set pdf_path (echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }')
+    mv $argv[2] $repo_dir/papers/$pdf_path.pdf
+    exit
+  case unlink
+    set pdf_path (echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }')
+    rm -f $repo_dir/papers/$pdf_path.pdf
+    exit
+  case open
+    set pdf_path (echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }')
+    if test -f $repo_dir/papers/$pdf_path.pdf
+      zathura $repo_dir/papers/$pdf_path.pdf &
+    else
+      echo 'PDF not found! Are you sure you linked it?'
+    end
+    exit
   end
+
+# Otherwise treat args as a list of doi's
 
 # check for doi's already in repo
 for doi in $argv

@@ -52,4 +52,4 @@ bibtool -r $key_format $repo $new_bibs | cat > $temp_repo
 mv $temp_repo $repo
 
 # generate file for fzf searching
-bibtool -r $fzf_format $repo | grep '^@' | sed 's/.*{\s*/\\\\n/' | sed 's/[-,]/ /g' | sed 's/+/,/g' | sed 's/e\[/\\\\e[/g' > $fzf_list
+bibtool -r $fzf_format $repo | grep '^@' | sed 's/.*{\s*/\\\\n/' | sed 's/[+,]/ /g' | sed 's/+/,/g' | sed 's/e\[/\\\\e[/g' > $fzf_list

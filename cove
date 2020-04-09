@@ -9,8 +9,8 @@ set fzf_format ~/.config/cove/fzf_format.rsc
 set repo $repo_dir/repo.bib
 set doi_list $repo_dir/doi
 set fzf_list $repo_dir/.fzf
-set new_bibs /tmp/cove_new.bib
-set temp_repo /tmp/cove_temp.bib
+set temp_file /tmp/cove_temp.bib
+set temp_repo /tmp/cove_temp_repo.bib
 
 # set default behaviour for no argument
 if ! count $argv > /dev/null
@@ -19,31 +19,32 @@ end
 
 # set behaviour for core commands
 switch $argv[1]
-  case ""
-    echo here!
-  exit
-  case cite
+  case cite # Find bibtex keys by fuzzy search
     echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }'
     exit
-  case title
+  case title # Find paper titles by fuzzy search
     echo -e (cat $fzf_list) | fzf --ansi | sed 's/.*[0-9]\.//' | sed 's/\. \[.*//'
     exit
-  case link
-    if ! echo $argv[2] | grep -q '\.pdf$'
+  case link # Link pdfs to records
+    if ! echo $argv[2] | grep -q '\.pdf$' # check that a pdf is supplied as well
       echo 'Please supply a valid pdf!'
       exit
     end
-    set pdf_path (echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }')
-    mv $argv[2] $repo_dir/papers/$pdf_path.pdf
+    echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }' > $temp_file # Choose a record by fuzzy search
+    if test -s $temp_file # check that fuzzy search was not cancelled
+      mv $argv[2] $repo_dir/papers/(cat $temp_file).pdf # move to paper repository
+    end
     exit
-  case unlink
-    set pdf_path (echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }')
-    rm -f $repo_dir/papers/$pdf_path.pdf
+  case unlink # Remove linked pdf from repository
+    echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }' > $temp_file
+    rm -f $repo_dir/papers/(cat $temp_file).pdf
     exit
-  case open
-    set pdf_path (echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }')
-    if test -f $repo_dir/papers/$pdf_path.pdf
-      zathura $repo_dir/papers/$pdf_path.pdf &
+  case open # Open a linked pdf
+    echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }' > $temp_file # Choose a record by fuzzy search
+    if ! test -s $temp_file # Check that search was not cancelled
+      exit
+    else if test -f $repo_dir/papers/(cat $temp_file).pdf # Check if file is in repository
+      zathura $repo_dir/papers/(cat $temp_file).pdf &
     else
       echo 'PDF not found! Are you sure you linked it?'
     end
@@ -62,13 +63,13 @@ end
 
 # Download bibtex records
 # -s = silent; -L = redirect location; -H = add custom header to request
-rm -f $new_bibs
+rm -f $temp_file
 for doi in $argv
-  curl -sLH 'Accept: application/x-bibtex' http://dx.doi.org/$doi >> $new_bibs
+  curl -sLH 'Accept: application/x-bibtex' http://dx.doi.org/$doi >> $temp_file
 end
 
 # Check for broken doi links
-if grep 'DOI Not Found' $new_bibs
+if grep 'DOI Not Found' $temp_file
   echo One or more invalid DOIs found!
   exit
 end
@@ -78,7 +79,7 @@ echo $argv | sed 's/ /\n/g' >> $doi_list
 
 # manage key with bibtool
 rm -f $temp_repo
-bibtool -r $key_format $repo $new_bibs | cat > $temp_repo
+bibtool -r $key_format $repo $temp_file | cat > $temp_repo
 mv $temp_repo $repo
 
 # generate file for fzf searching

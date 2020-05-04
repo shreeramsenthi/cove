@@ -4,3 +4,4 @@ fmt.et.al = ""
 fmt.title.title = "+"
 key.base = lower
 key.number.separator = ""
+new.entry.type {online}

@@ -20,27 +20,27 @@ end
 # set behaviour for core commands
 switch $argv[1]
   case cite # Find bibtex keys by fuzzy search
-    echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }'
+    echo -e (cat $fzf_list) | fzf --ansi | awk '{ print $NF }'
     exit
   case title # Find paper titles by fuzzy search
-    echo -e (cat $fzf_list) | fzf --ansi | sed 's/.*[0-9]\.//' | sed 's/\. \[.*//'
+    echo -e (cat $fzf_list) | fzf --ansi | awk -F '.' '{ print $3 }'
     exit
   case link # Link pdfs to records
     if ! echo $argv[2] | grep -q '\.pdf$' # check that a pdf is supplied as well
       echo 'Please supply a valid pdf!'
       exit
     end
-    echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }' > $temp_file # Choose a record by fuzzy search
+    echo -e (cat $fzf_list) | fzf --ansi | awk '{ print $NF }' > $temp_file # Choose a record by fuzzy search
     if test -s $temp_file # check that fuzzy search was not cancelled
       mv $argv[2] $repo_dir/papers/(cat $temp_file).pdf # move to paper repository
     end
     exit
   case unlink # Remove linked pdf from repository
-    echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }' > $temp_file
+    echo -e (cat $fzf_list) | fzf --ansi | awk '{ print $NF }' > $temp_file
     rm -f $repo_dir/papers/(cat $temp_file).pdf
     exit
   case open # Open a linked pdf
-    echo -e (cat $fzf_list) | fzf --ansi | awk 'NF{ print $NF }' > $temp_file # Choose a record by fuzzy search
+    echo -e (cat $fzf_list) | fzf --ansi | awk '{ print $NF }' > $temp_file # Choose a record by fuzzy search
     if ! test -s $temp_file # Check that search was not cancelled
       exit
     else if test -f $repo_dir/papers/(cat $temp_file).pdf # Check if file is in repository

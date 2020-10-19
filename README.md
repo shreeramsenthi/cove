@@ -24,6 +24,8 @@ Edit the `cove` file and modify the `repo_dir` variable to the directory where y
 
 Check that `local_bin_folder` variable in the Makefile points to a directory that is part of your `$PATH`, and otherwise just run `make` in this directory. Please note that modifying the `config_folder` variable in the Makefile is currently not supported.
 
+Note that this project depends on [fzf](https://github.com/junegunn/fzf) and [bibtool](https://github.com/ge-ne/bibtool).
+
 # Why cove?
 
 As part of my selfishness, I will be writing this utility in fish shell script, as that is my default shell. In keeping with the aquatic theme, I like the idea of hoarding all my papers in a cove. Think little mermaid...
